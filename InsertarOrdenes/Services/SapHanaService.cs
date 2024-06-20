@@ -130,12 +130,13 @@ namespace InsertarOrdenes.Services
             throw new Exception($"Failed to retrieve DocNum from SAP. JSON Sent: {jsonData}");
         }
 
-        public async Task<(List<int> successfulOrders, List<(int orderId, string error)> failedOrders)> SendAllOrdersToSapAsync()
+
+        public async Task<(List<(int orderId, int docNum)> successfulOrders, List<(int orderId, string error)> failedOrders)> SendAllOrdersToSapAsync()
         {
             await EnsureSessionIsValidAsync();
 
             var orderIds = await GetOrderIdsFromPostgresAsync();
-            var successfulOrders = new List<int>();
+            var successfulOrders = new List<(int orderId, int docNum)>();
             var failedOrders = new List<(int, string)>();
 
             foreach (var orderId in orderIds)
@@ -143,18 +144,19 @@ namespace InsertarOrdenes.Services
                 try
                 {
                     var (docNum, jsonData) = await SendOrderToSapAsync(orderId);
-                    _logger.LogInformation($"Order {orderId} successfully sent to SAP with DocNum {docNum}.");
-                    successfulOrders.Add(orderId);
+                    _logger.LogInformation($"Orden {orderId} enviada correctamente a SAP con documento numero {docNum}.");
+                    successfulOrders.Add((orderId, docNum));
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError($"Failed to send order with ID {orderId} to SAP: {ex.Message}");
+                    _logger.LogError($"Error al enviar la orden con pedido {orderId} a SAP: {ex.Message}");
                     failedOrders.Add((orderId, ex.Message));
                 }
             }
 
             return (successfulOrders, failedOrders);
         }
+
 
         private async Task MarkOrderAsInsertedAsync(int orderId)
         {
@@ -226,26 +228,27 @@ namespace InsertarOrdenes.Services
                     using (var command = connection.CreateCommand())
                     {
                         command.CommandText = @"
-                            SELECT 
-                                c.nxt_id_erp AS partner_nxt_id_erp,
-                                p.origen_venta,
-                                p.user_id AS user_name,
-                                c.name AS client_name,
-                                p.fecha_creacion AS fecha_creacion,
-                                p.date_order AS date_order,
-                                dp.id_producto,
-                                dp.product_uom_qty,
-                                dp.price_unit,
-                                dp.discount,
-                                pr.nxt_id_erp AS product_nxt_id_erp,
-                                dp.qty_order,
-                                dp.qty_bonus,
-                                pr.taxes_id
-                            FROM pedido p
-                            JOIN cliente c ON p.idcliente = c.idcliente
-                            JOIN detallepedidos dp ON p.idpedido = dp.idpedido
-                            JOIN producto pr ON dp.id_producto = pr.id_producto
-                            WHERE p.idpedido = @orderId";
+                    SELECT 
+                        c.nxt_id_erp AS partner_nxt_id_erp,
+                        p.origen_venta,
+                        p.user_id AS user_name,
+                        c.name AS client_name,
+                        p.fecha_creacion AS fecha_creacion,
+                        p.date_order AS date_order,
+                        p.numatcard,
+                        dp.id_producto,
+                        dp.product_uom_qty,
+                        dp.price_unit,
+                        dp.discount,
+                        pr.nxt_id_erp AS product_nxt_id_erp,
+                        dp.qty_order,
+                        dp.qty_bonus,
+                        pr.taxes_id
+                    FROM pedido p
+                    JOIN cliente c ON p.idcliente = c.idcliente
+                    JOIN detallepedidos dp ON p.idpedido = dp.idpedido
+                    JOIN producto pr ON dp.id_producto = pr.id_producto
+                    WHERE p.idpedido = @orderId";
 
                         command.Parameters.AddWithValue("@orderId", orderId);
 
@@ -261,6 +264,7 @@ namespace InsertarOrdenes.Services
                                     Comments = "Orden de prueba de pedido API",
                                     U_SL_ORI_VTA = MapOriginVenta(reader["origen_venta"].ToString()),
                                     U_SL_USER_ODOO = reader["user_name"].ToString().Trim(),
+                                    NumAtCard = reader["numatcard"].ToString().Trim(),
                                     DocumentLines = new List<object>()
                                 };
 
@@ -294,6 +298,8 @@ namespace InsertarOrdenes.Services
 
             return null;
         }
+
+
 
         private string MapOriginVenta(string origenVenta)
         {

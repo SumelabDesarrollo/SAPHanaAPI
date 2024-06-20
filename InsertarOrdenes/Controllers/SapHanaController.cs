@@ -37,8 +37,8 @@ namespace InsertarOrdenes.Controllers
                 var (successfulOrders, failedOrders) = await _sapHanaService.SendAllOrdersToSapAsync();
                 return Ok(new
                 {
-                    message = "Orden procesada",
-                    successfulOrders,
+                    message = "Pedido procesado",
+                    successfulOrders = successfulOrders.Select(o => new { orderId = o.orderId, docNum = o.docNum }),
                     failedOrders
                 });
             }
