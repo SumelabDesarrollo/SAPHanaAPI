@@ -1,0 +1,6 @@
+@SAPHanaAPI_HostAddress = http://localhost:5282
+
+GET {{SAPHanaAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

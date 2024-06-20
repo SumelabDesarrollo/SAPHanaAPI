@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Sap.Data.Hana.Net.v6.0">
+      <HintPath>..\..\..\..\..\..\Program Files\sap\hdbclient\dotnetcore\v6.0\Sap.Data.Hana.Net.v6.0.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
