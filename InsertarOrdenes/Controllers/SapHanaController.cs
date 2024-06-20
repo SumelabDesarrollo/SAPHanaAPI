@@ -21,7 +21,7 @@ namespace InsertarOrdenes.Controllers
             try
             {
                 var (docNum, jsonData) = await _sapHanaService.SendOrderToSapAsync(orderId);
-                return Ok(new { message = "Order inserted successfully", docNum, jsonData });
+                return Ok(new { message = "Orden insertada exitosamente", docNum, jsonData });
             }
             catch (Exception ex)
             {
@@ -37,7 +37,7 @@ namespace InsertarOrdenes.Controllers
                 var (successfulOrders, failedOrders) = await _sapHanaService.SendAllOrdersToSapAsync();
                 return Ok(new
                 {
-                    message = "Orders processed",
+                    message = "Orden procesada",
                     successfulOrders,
                     failedOrders
                 });

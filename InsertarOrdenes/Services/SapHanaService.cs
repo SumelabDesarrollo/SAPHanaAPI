@@ -33,8 +33,8 @@ namespace InsertarOrdenes.Services
             _baseUrl = configuration["SAP_API:BaseUrl"];
             _loginEndpoint = configuration["SAP_API:LoginEndpoint"];
             _ordersEndpoint = configuration["SAP_API:OrdersEndpoint"];
-            _docDate = configuration["SAP_Document:DocDate"];
-            _docDueDate = configuration["SAP_Document:DocDueDate"];
+            _docDate = configuration["SAP_Document:DocDate"] ?? DateTime.Now.ToString("yyyy-MM-dd");
+            _docDueDate = configuration["SAP_Document:DocDueDate"] ?? DateTime.Now.ToString("yyyy-MM-dd");
             _logger = logger;
         }
 
@@ -130,7 +130,6 @@ namespace InsertarOrdenes.Services
             throw new Exception($"Failed to retrieve DocNum from SAP. JSON Sent: {jsonData}");
         }
 
-
         public async Task<(List<int> successfulOrders, List<(int orderId, string error)> failedOrders)> SendAllOrdersToSapAsync()
         {
             await EnsureSessionIsValidAsync();
@@ -167,9 +166,9 @@ namespace InsertarOrdenes.Services
                     using (var command = connection.CreateCommand())
                     {
                         command.CommandText = @"
-                    UPDATE pedido
-                    SET insertado_sap = TRUE
-                    WHERE idpedido = @orderId";
+                            UPDATE pedido
+                            SET insertado_sap = TRUE
+                            WHERE idpedido = @orderId";
 
                         command.Parameters.AddWithValue("@orderId", orderId);
 
@@ -182,7 +181,6 @@ namespace InsertarOrdenes.Services
                 _logger.LogError($"Error updating order {orderId} as inserted in PostgreSQL: {ex.Message}");
             }
         }
-
 
         private async Task<List<int>> GetOrderIdsFromPostgresAsync()
         {
@@ -258,8 +256,8 @@ namespace InsertarOrdenes.Services
                                 var orderData = new
                                 {
                                     CardCode = reader["partner_nxt_id_erp"].ToString().Trim(),
-                                    DocDate = _docDate,
-                                    DocDueDate = _docDueDate,
+                                    DocDate = reader["fecha_creacion"] != DBNull.Value ? Convert.ToDateTime(reader["fecha_creacion"]).ToString("yyyy-MM-dd") : _docDate,
+                                    DocDueDate = reader["date_order"] != DBNull.Value ? Convert.ToDateTime(reader["date_order"]).ToString("yyyy-MM-dd") : _docDueDate,
                                     Comments = "Orden de prueba de pedido API",
                                     U_SL_ORI_VTA = MapOriginVenta(reader["origen_venta"].ToString()),
                                     U_SL_USER_ODOO = reader["user_name"].ToString().Trim(),
