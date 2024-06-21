@@ -14,6 +14,7 @@ builder.Services.AddSingleton<SapHanaService>(sp =>
         builder.Configuration.GetConnectionString("SAP_HANA"),
         builder.Configuration.GetConnectionString("Postgres")
     ));
+builder.Services.AddHostedService<SynchronizationService>(); // Registrar el servicio de sincronización
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

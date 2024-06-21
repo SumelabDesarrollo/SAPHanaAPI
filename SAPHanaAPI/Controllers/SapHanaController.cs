@@ -1,15 +1,16 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SAPHanaAPI.Services;
+using System.Threading.Tasks;
 
 namespace SAPHanaAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class SapHanaController : ControllerBase
+    public class ObtenerClienteController : ControllerBase
     {
         private readonly SapHanaService _sapHanaService;
 
-        public SapHanaController(SapHanaService sapHanaService)
+        public ObtenerClienteController(SapHanaService sapHanaService)
         {
             _sapHanaService = sapHanaService;
         }
@@ -17,7 +18,7 @@ namespace SAPHanaAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var data = await _sapHanaService.GetDataFromSapHanaAsync();
+            var data = await _sapHanaService.GetClientsFromSapHanaAsync();
             return Ok(data);
         }
     }
